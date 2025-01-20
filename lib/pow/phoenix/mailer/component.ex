@@ -24,7 +24,7 @@ defmodule Pow.Phoenix.Mailer.Component do
   end
 
   defmacro sigil_H({:<<>>, meta, [expr]}, []) do
-    unless Macro.Env.has_var?(__CALLER__, {:assigns, nil}) do
+    if !Macro.Env.has_var?(__CALLER__, {:assigns, nil}) do
       raise "~H requires a variable named \"assigns\" to exist and be set to a map"
     end
 
@@ -41,7 +41,7 @@ defmodule Pow.Phoenix.Mailer.Component do
   end
 
   defmacro sigil_P({:<<>>, meta, [expr]}, []) do
-    unless Macro.Env.has_var?(__CALLER__, {:assigns, nil}) do
+    if !Macro.Env.has_var?(__CALLER__, {:assigns, nil}) do
       raise "~P requires a variable named \"assigns\" to exist and be set to a map"
     end
 

@@ -180,7 +180,11 @@ defmodule Pow.Ecto.Schema do
     end
   end
 
-  @changeset_functions [:user_id_field_changeset, :password_changeset, :current_password_changeset]
+  @changeset_functions [
+    :user_id_field_changeset,
+    :password_changeset,
+    :current_password_changeset
+  ]
 
   @doc false
   defmacro __pow_functions__ do
@@ -190,7 +194,11 @@ defmodule Pow.Ecto.Schema do
 
         quote do
           def unquote(pow_function_name)(user_or_changeset, attrs) do
-            unquote(__MODULE__).Changeset.unquote(changeset_function)(user_or_changeset, attrs, @pow_config)
+            unquote(__MODULE__).Changeset.unquote(changeset_function)(
+              user_or_changeset,
+              attrs,
+              @pow_config
+            )
           end
         end
       end
@@ -286,7 +294,8 @@ defmodule Pow.Ecto.Schema do
 
   # TODO: Remove by 1.1.0
   @deprecated "No longer public function"
-  def filter_new_fields(fields, existing_fields), do: __filter_new_fields__(fields, existing_fields)
+  def filter_new_fields(fields, existing_fields),
+    do: __filter_new_fields__(fields, existing_fields)
 
   @doc false
   defmacro __register_fields__ do
@@ -324,7 +333,10 @@ defmodule Pow.Ecto.Schema do
   @default_user_id_field :email
   @spec user_id_field(Changeset.t() | Config.t()) :: atom()
   def user_id_field(%Changeset{data: %user_mod{}}), do: user_mod.pow_user_id_field()
-  def user_id_field(config) when is_list(config), do: Config.get(config, :user_id_field, @default_user_id_field)
+
+  def user_id_field(config) when is_list(config),
+    do: Config.get(config, :user_id_field, @default_user_id_field)
+
   def user_id_field(_any), do: @default_user_id_field
 
   @doc false
@@ -351,31 +363,34 @@ defmodule Pow.Ecto.Schema do
       not Enum.any?(ecto_assocs, &assocs_match?(type, name, &1))
     end)
     |> Enum.map(fn
-      {type, name, queryable, []}       -> "#{type} #{inspect name}, #{inspect queryable}"
-      {type, name, queryable, defaults} -> "#{type} #{inspect name}, #{inspect queryable}, #{inspect defaults}"
+      {type, name, queryable, []} ->
+        "#{type} #{inspect(name)}, #{inspect(queryable)}"
+
+      {type, name, queryable, defaults} ->
+        "#{type} #{inspect(name)}, #{inspect(queryable)}, #{inspect(defaults)}"
     end)
     |> case do
-      []         -> :ok
+      [] -> :ok
       assoc_defs -> warn_missing_assocs_error(module, assoc_defs)
     end
   end
 
   defp validate_assoc!({_type, _name, _module, _defaults} = assoc), do: assoc
+
   defp validate_assoc!(value) do
     raise """
     `@pow_assocs` is required to have the format `{type, field, module, defaults}`.
 
-    The value provided was: #{inspect value}
+    The value provided was: #{inspect(value)}
     """
   end
 
   defp warn_missing_assocs_error(module, assoc_defs) do
-    IO.warn(
-      """
-      Please define the following association(s) in the schema for #{inspect module}:
+    IO.warn("""
+    Please define the following association(s) in the schema for #{inspect(module)}:
 
-      #{Enum.join(assoc_defs, "\n")}
-      """)
+    #{Enum.join(assoc_defs, "\n")}
+    """)
   end
 
   @doc false
@@ -383,7 +398,9 @@ defmodule Pow.Ecto.Schema do
     ecto_fields = Module.get_attribute(module, :ecto_fields)
 
     # TODO: Require Ecto 3.8.0 in 1.1.0 and remove `:changeset_fields`
-    changeset_fields = Module.get_attribute(module, :ecto_changeset_fields) || Module.get_attribute(module, :changeset_fields)
+    changeset_fields =
+      Module.get_attribute(module, :ecto_changeset_fields) ||
+        Module.get_attribute(module, :changeset_fields)
 
     module
     |> Module.get_attribute(:pow_fields)
@@ -391,22 +408,22 @@ defmodule Pow.Ecto.Schema do
     |> Enum.reverse()
     |> Enum.filter(&missing_field?(&1, ecto_fields, changeset_fields))
     |> Enum.map(fn
-      {name, type, []}       -> "field #{inspect name}, #{inspect type}"
-      {name, type, defaults} -> "field #{inspect name}, #{inspect type}, #{inspect defaults}"
+      {name, type, []} -> "field #{inspect(name)}, #{inspect(type)}"
+      {name, type, defaults} -> "field #{inspect(name)}, #{inspect(type)}, #{inspect(defaults)}"
     end)
     |> case do
-      []         -> :ok
+      [] -> :ok
       field_defs -> warn_missing_fields_error(module, field_defs)
     end
   end
 
-
   defp validate_field!({_name, _type, _defaults} = assoc), do: assoc
+
   defp validate_field!(value) do
     raise """
     `@pow_fields` is required to have the format `{name, type, defaults}`.
 
-    The value provided was: #{inspect value}
+    The value provided was: #{inspect(value)}
     """
   end
 
@@ -429,12 +446,11 @@ defmodule Pow.Ecto.Schema do
   end
 
   defp warn_missing_fields_error(module, field_defs) do
-    IO.warn(
-      """
-      Please define the following field(s) in the schema for #{inspect module}:
+    IO.warn("""
+    Please define the following field(s) in the schema for #{inspect(module)}:
 
-      #{Enum.join(field_defs, "\n")}
-      """)
+    #{Enum.join(field_defs, "\n")}
+    """)
   end
 
   @doc """
@@ -461,15 +477,19 @@ defmodule Pow.Ecto.Schema do
   def __timestamp__(:naive_datetime) do
     %{NaiveDateTime.utc_now() | microsecond: {0, 0}}
   end
+
   def __timestamp__(:naive_datetime_usec) do
     NaiveDateTime.utc_now()
   end
+
   def __timestamp__(:utc_datetime) do
     DateTime.from_unix!(System.system_time(:second), :second)
   end
+
   def __timestamp__(:utc_datetime_usec) do
     DateTime.from_unix!(System.system_time(:microsecond), :microsecond)
   end
+
   def __timestamp__(type) do
     type.from_unix!(System.system_time(:microsecond), :microsecond)
   end

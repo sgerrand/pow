@@ -64,7 +64,7 @@ defmodule Mix.Tasks.Pow.Phoenix.Install do
         config
 
       :error ->
-        Mix.raise "Couldn't install Pow! Did you run this inside your Phoenix app?"
+        Mix.raise("Couldn't install Pow! Did you run this inside your Phoenix app?")
     end
   end
 
@@ -80,18 +80,19 @@ defmodule Mix.Tasks.Pow.Phoenix.Install do
 
     %{
       file: file,
-      injections: [%{
-        content: content,
-        test: "config #{inspect(structure.web_app)}, :pow",
-        needle: "import_config",
-        prepend: true
-      }],
-      instructions:
-        """
-        Append this to #{Path.relative_to_cwd(file)}:
+      injections: [
+        %{
+          content: content,
+          test: "config #{inspect(structure.web_app)}, :pow",
+          needle: "import_config",
+          prepend: true
+        }
+      ],
+      instructions: """
+      Append this to #{Path.relative_to_cwd(file)}:
 
-        #{content}
-        """
+      #{content}
+      """
     }
   end
 
@@ -101,25 +102,26 @@ defmodule Mix.Tasks.Pow.Phoenix.Install do
 
     %{
       file: file,
-      injections: [%{
-        content: content,
-        test: "plug Pow.Plug.Session",
-        needle: "plug Plug.Session"
-      }],
-      instructions:
-        """
-        Add the `Pow.Plug.Session` plug to #{Path.relative_to_cwd(file)} after the `Plug.Session` plug:
+      injections: [
+        %{
+          content: content,
+          test: "plug Pow.Plug.Session",
+          needle: "plug Plug.Session"
+        }
+      ],
+      instructions: """
+      Add the `Pow.Plug.Session` plug to #{Path.relative_to_cwd(file)} after the `Plug.Session` plug:
 
-        defmodule #{inspect(structure.web_module)}.Endpoint do
-          use Phoenix.Endpoint, otp_app: #{inspect(structure.web_app)}
+      defmodule #{inspect(structure.web_module)}.Endpoint do
+        use Phoenix.Endpoint, otp_app: #{inspect(structure.web_app)}
 
-          # ...
+        # ...
 
-          plug Plug.Session, @session_options
-        #{content}
-          plug #{inspect(structure.web_module)}.Router
-        end
-        """
+        plug Plug.Session, @session_options
+      #{content}
+        plug #{inspect(structure.web_module)}.Router
+      end
+      """
     }
   end
 
@@ -127,6 +129,7 @@ defmodule Mix.Tasks.Pow.Phoenix.Install do
     file = Path.expand("#{structure.web_prefix}/router.ex")
 
     router_use_content = "  use Pow.Phoenix.Router"
+
     router_scope_content =
       """
         scope "/" do
@@ -148,24 +151,23 @@ defmodule Mix.Tasks.Pow.Phoenix.Install do
           content: router_scope_content,
           test: "pow_routes()",
           needle: "scope ",
-          prepend: true,
+          prepend: true
         }
       ],
-      instructions:
-        """
-        Update `#{Path.relative_to_cwd(file)}` with the Pow routes:
+      instructions: """
+      Update `#{Path.relative_to_cwd(file)}` with the Pow routes:
 
-        defmodule #{inspect(structure.web_module)}.Router do
-          use #{inspect(structure.web_module)}, :router
-        #{router_use_content}
+      defmodule #{inspect(structure.web_module)}.Router do
+        use #{inspect(structure.web_module)}, :router
+      #{router_use_content}
 
-          # ... pipelines
+        # ... pipelines
 
-        #{router_scope_content}
+      #{router_scope_content}
 
-          # ... routes
-        end
-        """
+        # ... routes
+      end
+      """
     }
   end
 
@@ -174,12 +176,18 @@ defmodule Mix.Tasks.Pow.Phoenix.Install do
 
     config
   end
+
   defp maybe_run_gen_templates(config, _args), do: config
 
-  defp maybe_run_extensions_gen_templates(%{templates: true, extension: extensions} = config, args) when extensions != [] do
+  defp maybe_run_extensions_gen_templates(
+         %{templates: true, extension: extensions} = config,
+         args
+       )
+       when extensions != [] do
     PhoenixExtensionTemplatesTask.run(args)
 
     config
   end
+
   defp maybe_run_extensions_gen_templates(config, _args), do: config
 end
